@@ -1,6 +1,8 @@
-set (connected_components_VERSION_MAJOR 0)
-set (connected_components_VERSION_MINOR 1)
+message("${connected_components_SOURCE_DIR}/include")
+set(HEADER_DIR "${connected_components_SOURCE_DIR}/include")
+include_directories(${HEADER_DIR})
+set(HEADERS
+    "${HEADER_DIR}/connected_components.hpp"
+    )
 
-include_directories("${connected_components_PROJECT_DIR}/include")
-
-add_executable (connected_components main.cpp)
+add_executable (connected_components main.cpp "${HEADERS}")
