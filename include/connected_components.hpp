@@ -1,14 +1,10 @@
 #pragma once
 
-#include "mld/types.hpp"
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
 #include <algorithm>
 #include <utility>
 #include <vector>
 
-namespace mld {
-namespace imaging {
+namespace algodynamic {
 
 struct pixel_index {
   int I;
@@ -24,36 +20,50 @@ struct pixel_index {
   bool operator!=(const pixel_index &idx) const { return !(operator==(idx)); }
 };
 
-template <typename PixelT, typename ComponentVisitor>
+class empty_image_exception : public std::runtime_error
+{
+public:
+	empty_image_exception() : std::runtime_error("The supplied image was empty") {}
+};
+
+template <typename Binary_image>
+	// Note - this is Concept syntax. It is commented out until compiler support is available
+	// (See Cpp Core Guidelines T.10 http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rt-concept)
+	// requires Raster_image<Binary_image>
 class connected_components {
   typedef pixel_index Idx;
   static Idx m_directions[];
-  Image<PixelT> m_image;
-  Image<int> m_labels;
-  ComponentVisitor &m_component_visitor;
+  std::vector<int> m_labels;
   void trace_contour(pixel_index, int, int, bool is_external);
 
   std::pair<std::pair<pixel_index, int>, bool> tracer(pixel_index, int, int,
                                                       bool is_external);
 
 public:
-  connected_components(const Image<PixelT> &img, ComponentVisitor &visitor);
-  Image<int> labels() { return m_labels; }
+  explicit connected_components(const Binary_image &img);
+  int foo() {};
+  size_t size() const { return 0; }
 };
 
-template <typename PixelT, typename ComponentVisitor>
-connected_components<PixelT, ComponentVisitor>::connected_components(
-    const Image<PixelT> &img, ComponentVisitor &visitor)
-    : m_image(img), m_component_visitor(visitor),
-      m_labels(Image<int>::Zero(img.rows(), img.cols())) {
+template<typename Binary_image>
+connected_components<Binary_image>::connected_components(const Binary_image & img)
+{
+	if (img.width() == 0 || img.height() == 0)
+	{
+		throw empty_image_exception();
+	}
+}
+
+
+template <typename Binary_image>
+connected_components<Binary_image>::connected_components(
+    const Binary_image &img )
+    : m_labels(img.width()*img.height()) {
   int last_row_index = m_image.rows() - 1;
   int last_column_index = m_image.cols() - 1;
-  int h = m_labels.rows();
-  int w = m_labels.cols();
+  int height = m_image.height();
+  int width = m_image.width();
   int label = 1;
-
-  m_image.row(0).fill(255);
-  m_image.row(last_row_index).fill(255);
 
   for (int j = 0; j < h; ++j) {
     auto pRow = m_image.row(j);
@@ -159,5 +169,5 @@ void connected_components<binary_image_t, ComponentVisitor>::trace_contour(
     }
   }
 }
-}
+*/
 }
